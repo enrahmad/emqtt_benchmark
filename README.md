@@ -12,14 +12,14 @@ make
 
 ```sh
 $ ./emqtt_bench_sub --help
-Usage: emqtt_bench_sub [--help <help>] [-h [<host>]] [-p [<port>]]
+Usage: emqtt_bench_sub [--help <help>] [-L [<load_balancer>]] [-p [<port>]]
                        [-c [<count>]] [-i [<interval>]] [-t <topic>]
                        [-q [<qos>]] [-u <username>] [-P <password>]
                        [-k [<keepalive>]] [-C [<clean>]]
                        [--ifaddr <ifaddr>]
 
   --help             help information
-  -h, --host         mqtt server hostname or IP address [default: localhost]
+  -L, --balancer     load balancer url [default: http://172.31.21.195]
   -p, --port         mqtt server port number [default: 1883]
   -c, --count        max count of clients [default: 200]
   -n, --startnumber  start number [default: 0]
@@ -43,7 +43,7 @@ For example, create 50K concurrent clients at the arrival rate of 100/sec:
 
 ```sh
 $ ./emqtt_bench_pub --help
-Usage: emqtt_bench_pub [--help <help>] [-h [<host>]] [-p [<port>]]
+Usage: emqtt_bench_pub [--help <help>] [-L [<load_balancer>]] [-p [<port>]]
                        [-c [<count>]] [-i [<interval>]]
                        [-I [<interval_of_msg>]] [-u <username>]
                        [-P <password>] [-t <topic>] [-s [<size>]]
@@ -51,8 +51,8 @@ Usage: emqtt_bench_pub [--help <help>] [-h [<host>]] [-p [<port>]]
                        [-C [<clean>]] [--ifaddr <ifaddr>]
 
   --help                 help information
-  -h, --host             mqtt server hostname or IP address [default:
-                         localhost]
+  -L, --balancer         load balancer url [default:
+                         http://172.31.21.195]
   -p, --port             mqtt server port number [default: 1883]
   -c, --count            max count of clients [default: 200]
   -n, --startnumber      start number [default: 0]
@@ -102,4 +102,7 @@ You should not set '-c' option more than 60K for TCP ports limit on one interfac
 ## Author
 
 Feng Lee <feng@emqtt.io>
+
+## Modifier
+Ahmad Athaullah <ahmad.athaullah@gmail.com>
 
