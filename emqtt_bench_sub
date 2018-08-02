@@ -5,8 +5,6 @@
 -define(OPTS, [
          {help, undefined, "help", boolean,
           "help information"},
-         {host, $h, "host", {string, "localhost"},
-          "mqtt server hostname or IP address"},
          {port, $p, "port", {integer, 1883},
           "mqtt server port number"},
          {count, $c, "count", {integer, 200},
@@ -26,6 +24,8 @@
           "keep alive in seconds"},
          {clean, $C, "clean", {boolean, true},
           "clean session"},
+         {balancer, $L, "balancer", {string, "http://172.31.21.195"},
+          "balancer url to get nodes"},
          {ssl, $S, "ssl", {boolean, false},
           "ssl socoket for connecting to server"},
          {certfile, undefined, "certfile", string,

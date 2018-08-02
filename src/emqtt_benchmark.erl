@@ -22,7 +22,7 @@
 
 -module(emqtt_benchmark).
 
--export([main/2, start/2, run/3, connect/4, loop/4]).
+-export([main/2, start/2, run/3, connect/5, loop/4]).
 
 -define(TAB, eb_stats).
 
@@ -86,15 +86,26 @@ run(Parent, PubSub, Opts) ->
 run(_Parent, 0, _PubSub, _Opts) ->
     done;
 run(Parent, N, PubSub, Opts) ->
-    spawn(?MODULE, connect, [Parent, N+proplists:get_value(startnumber, Opts), PubSub, Opts]),
+    Balancer = proplists:get_value(balancer, Opts),
+    io:format("Get MQTT Balancer on: ~p~n", [Balancer]),
+    inets:start(),
+    Request = {Balancer, [{"Authorization","Basic " ++ base64:encode_to_string("admin:public")}], "application/json", []},
+    {_, {_,_,Payload}} = httpc:request(post, Request, [], []),
+    {Json} = jiffy:decode(Payload),
+    Node = proplists:get_value(<<"node">>, Json),
+    % io:format("MqttNodes: ~p~n", [Node]),
+    inets:stop(),
+    spawn(?MODULE, connect, [Parent, N+proplists:get_value(startnumber, Opts), PubSub, Opts, Node]),
 	timer:sleep(proplists:get_value(interval, Opts)),
 	run(Parent, N-1, PubSub, Opts).
     
-connect(Parent, N, PubSub, Opts) ->
+connect(Parent, N, PubSub, Opts, MQHost) ->
     process_flag(trap_exit, true),
     random:seed(os:timestamp()),
+    io:format("Connecting emq on host: ~p~n", [binary_to_list(MQHost)]),
     ClientId = client_id(PubSub, N, Opts),
-    MqttOpts = [{client_id, ClientId} | mqtt_opts(Opts)],
+    SubOpts = [{client_id, ClientId} | mqtt_opts(Opts)],
+    MqttOpts = [{host, binary_to_list(MQHost)} | SubOpts],
     TcpOpts  = tcp_opts(Opts),
     AllOpts  = [{seq, N}, {client_id, ClientId} | Opts],
 	case emqttc:start_link(MqttOpts, TcpOpts) of
@@ -140,8 +151,8 @@ mqtt_opts(Opts) ->
     [{logger, error}|mqtt_opts([SslOpts|Opts], [])].
 mqtt_opts([], Acc) ->
     Acc;
-mqtt_opts([{host, Host}|Opts], Acc) ->
-    mqtt_opts(Opts, [{host, Host}|Acc]);
+% mqtt_opts([{host, Host}|Opts], Acc) ->
+%     mqtt_opts(Opts, [{host, Host}|Acc]);
 mqtt_opts([{port, Port}|Opts], Acc) ->
     mqtt_opts(Opts, [{port, Port}|Acc]);
 mqtt_opts([{username, Username}|Opts], Acc) ->
