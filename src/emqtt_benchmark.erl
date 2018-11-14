@@ -132,8 +132,12 @@ subscribe(Client, Opts) ->
 publish(Client, Opts) ->
     Flags   = [{qos, proplists:get_value(qos, Opts)},
                {retain, proplists:get_value(retain, Opts)}],
+    Topics = topics_opt(Opts),
     Payload = proplists:get_value(payload, Opts),
-    emqttc:publish(Client, topic_opt(Opts), Payload, Flags).
+    lists:foreach(fun(Topic) ->
+                      emqttc:publish(Client, [Topic], Payload, Flags)
+              end, Topics).
+    
 
 mqtt_opts(Opts) ->
     SslOpts = ssl_opts(Opts),
