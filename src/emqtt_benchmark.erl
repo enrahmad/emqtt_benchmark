@@ -119,6 +119,9 @@ loop(N, Client, PubSub, Opts) ->
             ets:update_counter(?TAB, sent, {2, 1}),
             loop(N, Client, PubSub, Opts);
         {publish, _Topic, _Payload} ->
+            TimeNow = list_to_integer(float_to_list(os:system_time() / 1.0e6,[{decimals,0}])),
+            TimeMessage = list_to_integer(binary_to_list(_Payload)),
+            io:format("Message Received on topic ~s with latency: ~p ms~n", [_Topic, TimeNow - TimeMessage]),
             ets:update_counter(?TAB, recv, {2, 1}),
             loop(N, Client, PubSub, Opts);
         {'EXIT', Client, Reason} ->
@@ -133,10 +136,11 @@ publish(Client, Opts) ->
     Flags   = [{qos, proplists:get_value(qos, Opts)},
                {retain, proplists:get_value(retain, Opts)}],
     Topics = topics_opt(Opts),
-    Payload = proplists:get_value(payload, Opts),
+    % Payload = proplists:get_value(payload, Opts),
+    Payload = list_to_binary(float_to_list(os:system_time() / 1.0e6,[{decimals,0}])),
     lists:foreach(fun(Topic) ->
                       emqttc:publish(Client, [Topic], Payload, Flags)
-              end, Topics).
+                end, Topics).
     
 
 mqtt_opts(Opts) ->
