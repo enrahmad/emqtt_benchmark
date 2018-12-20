@@ -120,8 +120,6 @@ loop(N, Client, PubSub, Opts) ->
             loop(N, Client, PubSub, Opts);
         {publish, _Topic, _Payload} ->
             ets:update_counter(?TAB, recv, {2, 1}),
-            io:format("Message Received from ~s: ~p~n", [_Topic, _Payload]),
-            % rr(brod),
             {ok, _} = application:ensure_all_started(brod),
             KafkaBootstrapEndpoints = [{"54.250.145.77", 9092}],
             KafkaTopic = <<"test-topic">>,
@@ -129,7 +127,6 @@ loop(N, Client, PubSub, Opts) ->
             ok = brod:start_client(KafkaBootstrapEndpoints, client1),
             ok = brod:start_producer(client1, KafkaTopic, _ProducerConfig = []),
             ok = brod:produce_sync(client1, KafkaTopic, Partition, <<>>, _Payload),
-            io:format("Message produced to kafka"),
             loop(N, Client, PubSub, Opts);
         {'EXIT', Client, Reason} ->
             io:format("client ~p EXIT: ~p~n", [N, Reason])
