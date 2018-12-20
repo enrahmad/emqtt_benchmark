@@ -6,6 +6,8 @@
   {applications, [kernel,
                   stdlib,
                   lager,
-                  emqttc]},
+                  emqttc,
+                  brod]},
   {env, []}
+  
  ]}.

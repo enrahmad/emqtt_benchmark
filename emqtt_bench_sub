@@ -1,6 +1,6 @@
 #! /usr/bin/env escript
 %% -*- erlang -*-
-%%! -pa ./ebin -pa deps/emqttc/ebin -pa deps/getopt/ebin -pa deps/gen_logger/ebin -pa deps/goldrush/ebin -smp true +K true +A 16 +P 200000 -env ERL_MAX_PORTS 100000 -env ERTS_MAX_PORTS 100000
+%%! -pa ./ebin -pa deps/brod/ebin -pa deps/crc32cer/ebin -pa deps/snappyer/ebin -pa deps/supervisor3/ebin -pa deps/kafka_protocol/ebin -pa deps/emqttc/ebin -pa deps/getopt/ebin -pa deps/gen_logger/ebin -pa deps/goldrush/ebin -smp true +K true +A 16 +P 200000 -env ERL_MAX_PORTS 100000 -env ERTS_MAX_PORTS 100000
 
 -define(OPTS, [
          {help, undefined, "help", boolean,
