@@ -22,7 +22,7 @@
 
 -module(emqtt_benchmark).
 
--export([main/2, start/2, run/3, connect/4, loop/4]).
+-export([main/2, start/2, run/3, connect/4, loop/5]).
 
 -define(TAB, eb_stats).
 
@@ -97,6 +97,11 @@ connect(Parent, N, PubSub, Opts) ->
     MqttOpts = [{client_id, ClientId} | mqtt_opts(Opts)],
     TcpOpts  = tcp_opts(Opts),
     AllOpts  = [{seq, N}, {client_id, ClientId} | Opts],
+    {ok, _} = application:ensure_all_started(brod),
+    KafkaBootstrapEndpoints = [{"13.231.184.243", 9092}],
+    KafkaTopic = <<"bridge">>,
+    ok = brod:start_client(KafkaBootstrapEndpoints, client1),
+    ok = brod:start_producer(client1, KafkaTopic, _ProducerConfig = []),
 	case emqttc:start_link(MqttOpts, TcpOpts) of
     {ok, Client} ->
         Parent ! {connected, N, Client},
@@ -107,27 +112,27 @@ connect(Parent, N, PubSub, Opts) ->
                Interval = proplists:get_value(interval_of_msg, Opts),
                timer:send_interval(Interval, publish)
         end,
-        loop(N, Client, PubSub, AllOpts);
+        loop(N, Client, PubSub, AllOpts, client1);
     {error, Error} ->
         io:format("client ~p connect error: ~p~n", [N, Error])
     end.
 
-loop(N, Client, PubSub, Opts) ->
+loop(N, Client, PubSub, Opts, KafkaClient) ->
     receive
         publish ->
             publish(Client, Opts),
             ets:update_counter(?TAB, sent, {2, 1}),
-            loop(N, Client, PubSub, Opts);
+            loop(N, Client, PubSub, Opts, KafkaClient);
         {publish, _Topic, _Payload} ->
             ets:update_counter(?TAB, recv, {2, 1}),
-            {ok, _} = application:ensure_all_started(brod),
-            KafkaBootstrapEndpoints = [{"54.250.145.77", 9092}],
-            KafkaTopic = <<"test-topic">>,
+            % {ok, _} = application:ensure_all_started(brod),
+            % KafkaBootstrapEndpoints = [{"13.231.184.243", 9092}],
+            KafkaTopic = <<"bridge">>,
             Partition = 0,
-            ok = brod:start_client(KafkaBootstrapEndpoints, client1),
-            ok = brod:start_producer(client1, KafkaTopic, _ProducerConfig = []),
-            ok = brod:produce_sync(client1, KafkaTopic, Partition, <<>>, _Payload),
-            loop(N, Client, PubSub, Opts);
+            % ok = brod:start_client(KafkaBootstrapEndpoints, client1),
+            % ok = brod:start_producer(client1, KafkaTopic, _ProducerConfig = []),
+            ok = brod:produce_sync(KafkaClient, KafkaTopic, Partition, <<>>, _Payload),
+            loop(N, Client, PubSub, Opts, KafkaClient);            
         {'EXIT', Client, Reason} ->
             io:format("client ~p EXIT: ~p~n", [N, Reason])
 	end.
