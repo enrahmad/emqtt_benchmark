@@ -22,7 +22,7 @@
 
 -module(emqtt_benchmark).
 
--export([main/2, start/2, run/3, connect/4, loop/5]).
+-export([main/2, start/2, run/3, connect/4, loop/5, produceToKafka/2]).
 
 -define(TAB, eb_stats).
 
@@ -98,7 +98,7 @@ connect(Parent, N, PubSub, Opts) ->
     TcpOpts  = tcp_opts(Opts),
     AllOpts  = [{seq, N}, {client_id, ClientId} | Opts],
     {ok, _} = application:ensure_all_started(brod),
-    KafkaBootstrapEndpoints = [{"18.179.108.189", 9092}],
+    KafkaBootstrapEndpoints = [{"54.249.69.208", 9092}],
     KafkaTopic = <<"bridge">>,
     ok = brod:start_client(KafkaBootstrapEndpoints, client1),
     ok = brod:start_producer(client1, KafkaTopic, _ProducerConfig = []),
@@ -125,7 +125,8 @@ loop(N, Client, PubSub, Opts, KafkaClient) ->
             loop(N, Client, PubSub, Opts, KafkaClient);
         {publish, _Topic, _Payload} ->
             ets:update_counter(?TAB, recv, {2, 1}),
-            produceToKafka(KafkaClient, _Payload),
+            spawn(emqtt_benchmark, produceToKafka, [KafkaClient, _Payload]),
+            % produceToKafka(KafkaClient, _Payload),
             loop(N, Client, PubSub, Opts, KafkaClient);            
         {'EXIT', Client, Reason} ->
             io:format("client ~p EXIT: ~p~n", [N, Reason])
