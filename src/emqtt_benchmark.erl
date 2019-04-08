@@ -101,7 +101,7 @@ run(Parent, N, PubSub, Opts) ->
     
 connect(Parent, N, PubSub, Opts, MQHost) ->
     process_flag(trap_exit, true),
-    random:seed(os:timestamp()),
+    rand:seed(os:timestamp()),
     io:format("Connecting emq on host: ~p~n", [binary_to_list(MQHost)]),
     ClientId = client_id(PubSub, N, Opts),
     SubOpts = [{client_id, ClientId} | mqtt_opts(Opts)],
@@ -204,7 +204,7 @@ client_id(PubSub, N, Opts) ->
             IfAddr
     end,
     list_to_binary(lists:concat([Prefix, "_bench_", atom_to_list(PubSub),
-                                    "_", N, "_", random:uniform(16#FFFFFFFF)])).
+                                    "_", N, "_", rand:uniform(16#FFFFFFFF)])).
 
 topics_opt(Opts) ->
     Topics = topics_opt(Opts, []),
